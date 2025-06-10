@@ -1,0 +1,17 @@
+pydantic_settings
+typing_extensions
+fastapi
+uvicorn
+pydantic[email]
+jwt
+passlib
+python-multipart
+azure-cosmos
+azure-storage-blob
+openai  
+httpx
+starlette
+aiohttp
+bcrypt<4.0.0
+PyJWT
+pandas
