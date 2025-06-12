@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = Field(default=["http://localhost:3000"])
     
     # JWT settings
+    USER_NAME: str = Field(default="testuser")
+    USER_PASSWORD: str = Field(default="testpassword")
     JWT_SECRET_KEY: str = Field(...)
     JWT_ALGORITHM: str = Field(default="HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)

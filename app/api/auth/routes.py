@@ -26,6 +26,44 @@ from utils.response import SuccessResponse
 router = APIRouter()
 
 
+@router.get("/ping")
+async def ping():
+    """
+    Health check endpoint to verify connection.
+    """
+    return {"message": "Hello, connection is working as expected."}
+
+
+@router.get("/auth_ping")
+async def ping(current_user: Annotated[dict, Depends(get_current_active_user)]):
+    return {"message": f"Hello {current_user.username}, chat connection is working as expected."}
+
+
+@router.post("/temp-login", response_model=TokenResponse)
+async def temp_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> TokenResponse:
+    """
+    Temporary login endpoint with hardcoded credentials for testing only.
+    """
+    HARDCODED_USERNAME = settings.USER_NAME
+    HARDCODED_PASSWORD = settings.USER_PASSWORD
+    HARDCODED_ROLE = "USER"
+    HARDCODED_ID = "user-123"
+
+    if form_data.username != HARDCODED_USERNAME or form_data.password != HARDCODED_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    tokens = await create_tokens(
+        user_id=HARDCODED_ID,
+        username=HARDCODED_USERNAME,
+        role=HARDCODED_ROLE
+    )
+    return tokens
+
+
 @router.post("/login", response_model=TokenResponse)
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> TokenResponse:
     """

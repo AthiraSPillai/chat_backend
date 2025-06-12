@@ -21,6 +21,7 @@ from api.admin.routes import router as admin_router
 from api.admin.role_routes import router as role_router
 from api.admin.task_routes import router as task_router
 from api.admin.prompt_routes import router as prompt_router
+from api.embedding import routes as embedding_routes
 
 from integrations.azure_cosmos_db import initialize_cosmos_client, close_cosmos_client
 from integrations.azure_blob import initialize_blob_client, close_blob_client
@@ -103,6 +104,7 @@ app.include_router(role_router, prefix="/api/admin", tags=["Admin - Roles"])
 app.include_router(task_router, prefix="/api/admin", tags=["Admin - Tasks"])
 app.include_router(prompt_router, prefix="/api/admin", tags=["Admin - Prompts"])
 
+app.include_router(embedding_routes.router, prefix="/api/embed", tags=["Embedding"])
 
 @app.get("/", tags=["Health"])
 async def root():
