@@ -1,11 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
+TASK_ID_TO_NAME = {
+    1: "Summarization",
+    2: "Translation",
+    3: "Brainstorming",
+    4: "PowerPoint Generation"
+}
 class TaskBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
-    role_id: Optional[str] = None
-    prompt_template: Optional[str] = Field(None, max_length=2000)
+    task_id: int
+    name: str = ""
 
 class TaskCreate(TaskBase):
     pass

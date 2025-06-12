@@ -1,0 +1,9 @@
+cosmos DB
+=======================
+chat_session container settings> update >>>>>>>>>>>
+ "compositeIndexes": [
+  [
+    { "path": "/last_message_at", "order": "descending" },
+    { "path": "/created_at", "order": "descending" }
+  ]
+]

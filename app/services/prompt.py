@@ -9,9 +9,10 @@ from typing import Optional, Dict, Any, List, Tuple
 from datetime import datetime
 import uuid
 
-from api.admin.schema import PromptCreate, PromptUpdate
+from api.admin.prompt_schema import PromptCreate, PromptUpdate
 from integrations.azure_blob import upload_blob, download_blob, delete_blob
 from integrations.azure_cosmos_db import get_container, query_items, read_item # Import necessary Cosmos DB functions
+from config import settings  # Add this import (adjust path if needed)
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class PromptService:
         
         # Upload to blob storage
         await upload_blob(
-            container_name="prompts",
+            container_name=settings.PROMPT_CONTAINER_NAME,
             blob_path=blob_path,
             content=formatted_content,
             content_type="text/plain"
@@ -86,7 +87,7 @@ class PromptService:
         
         # Create latest.txt symlink
         await upload_blob(
-            container_name="prompts",
+            container_name=settings.PROMPT_CONTAINER_NAME,
             blob_path=f"{prompt_id}/latest.txt",
             content=formatted_content,
             content_type="text/plain"
@@ -278,13 +279,13 @@ class PromptService:
                 # Delete all versions
                 for v in range(1, version + 1):
                     await delete_blob(
-                        container_name="prompts",
+                        container_name=settings.PROMPT_CONTAINER_NAME,
                         blob_path=f"{prompt_id}/v{v}.txt"
                     )
                 
                 # Delete latest.txt
                 await delete_blob(
-                    container_name="prompts",
+                    container_name=settings.PROMPT_CONTAINER_NAME,
                     blob_path=f"{prompt_id}/latest.txt"
                 )
             except Exception as e:
@@ -331,7 +332,7 @@ class PromptService:
             
             # Get content from blob storage
             content_stream, _, _ = await download_blob(
-                container_name="prompts",
+                container_name=settings.PROMPT_CONTAINER_NAME,
                 blob_path=blob_path
             )
             
@@ -388,7 +389,7 @@ class PromptService:
             
             # Upload to blob storage
             await upload_blob(
-                container_name="prompts",
+                container_name=settings.PROMPT_CONTAINER_NAME,
                 blob_path=blob_path,
                 content=formatted_content,
                 content_type="text/plain"
@@ -396,7 +397,7 @@ class PromptService:
             
             # Update latest.txt
             await upload_blob(
-                container_name="prompts",
+                container_name=settings.PROMPT_CONTAINER_NAME,
                 blob_path=f"{prompt_id}/latest.txt",
                 content=formatted_content,
                 content_type="text/plain"

@@ -29,7 +29,7 @@ from utils.response import SuccessResponse
 router = APIRouter()
 
 
-@router.post("", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_file(
     file_create: FileCreate,
     current_user: Annotated[dict, Depends(get_current_active_user)]

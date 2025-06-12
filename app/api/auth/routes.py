@@ -55,7 +55,8 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> T
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh_token(refresh_request: RefreshTokenRequest) -> TokenResponse:
+async def refresh_token(refresh_request: RefreshTokenRequest,
+) -> TokenResponse:
     """
     Refresh access token using a valid refresh token.
     

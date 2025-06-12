@@ -33,8 +33,9 @@ class CosmosDBService:
             )
 
         container_names = [
-            "users", "chat_sessions", "messages", "files", "tasks", 
-            "task_results", "embeddings", "refresh_token", "roles"
+            settings.SESSION_CONTAINER_NAME, settings.FILES_CONTAINER_NAME ,settings.CHAT_CONTAINER_NAME,settings.TASKS_CONTAINER_NAME,
+            settings.TASK_RESULTS_CONTAINER_NAME,settings.EMBEDDINGS_CONTAINER_NAME, settings.USERS_CONTAINER_NAME,settings.ROLES_CONTAINER_NAME,
+            settings.REFRESH_TOKEN_CONTAINER_NAME, settings.TASKS_CONTAINER_NAME, settings.CHAT_MESSAGES_CONTAINER_NAME
         ]
 
         for name in container_names:
@@ -47,7 +48,7 @@ class CosmosDBService:
             except cosmos_exceptions.CosmosResourceNotFoundError:
                 logger.info(f"Creating container: {name}")
                 key_path = (
-                    "/session_id" if name in ["messages", "task_results"]
+                    "/session_id" if name in ["session", "task_results"]
                     else "/id"
                 )
                 container = await self.database.create_container_if_not_exists(
@@ -94,7 +95,8 @@ class CosmosDBService:
     query: str,
     parameters: Optional[list] = None,
     page: int = 1,
-    page_size: int = 10
+    page_size: int = 10,
+    continuation_token: Optional[str] = None
 ) -> Tuple[List[Dict[str, Any]], int]:
         container = await self.get_container(container_name)
 
@@ -111,15 +113,18 @@ class CosmosDBService:
         paginated_query = f"{query} OFFSET {offset} LIMIT {page_size}"
         items = [item async for item in container.query_items(query=paginated_query, parameters=parameters)]
         return items, total_count
-
-    async def delete_item_by_id(self, container_name: str, item_id: str):
+       
+    
+    async def delete_item_by_id(self, container_name: str, item_id: str, partition_key: str):
         container = await self.get_container(container_name)
         try:
-            await container.delete_item(item=item_id, partition_key=item_id)
+            await container.delete_item(item=item_id, partition_key=partition_key)
+            return True
         except cosmos_exceptions.CosmosResourceNotFoundError:
             logger.warning(f"Item with id {item_id} not found in container {container_name}")
         except Exception as e:
             logger.error(f"Error deleting item {item_id} from container {container_name}: {e}")
+
 
 cosmos_db_service = CosmosDBService()
 
@@ -143,8 +148,15 @@ async def read_item(container_name: str, item_id: str, partition_key: str) -> Op
 async def replace_item(container_name: str, item_id: str, item: Dict[str, Any]) -> Dict[str, Any]:
     return await cosmos_db_service.update_item_by_id(container_name, item_id, item)
 
-async def delete_item(container_name: str, item_id: str, partition_key: str) -> None:
-    await cosmos_db_service.delete_item_by_id(container_name, item_id)
+async def delete_item(container_name: str, item_id: str, partition_key: str) -> bool:
+    try:
+        await cosmos_db_service.delete_item_by_id(container_name, item_id, partition_key)
+        return True
+    except cosmos_exceptions.CosmosResourceNotFoundError:
+        return False
+    except Exception as e:
+        logger.error(f"Error deleting item {item_id} from container {container_name}: {e}")
+        raise
 
 async def query_items_with_pagination(
     container_name: str,

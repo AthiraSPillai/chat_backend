@@ -161,6 +161,7 @@ class ChatSessionResponse(ChatSessionBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
     last_message_at: Optional[datetime] = Field(None, description="Last message timestamp")
+    ui_session_id: Optional[str] = Field(None, description="UI session ID for tracking")
     
     class Config:
         schema_extra = {

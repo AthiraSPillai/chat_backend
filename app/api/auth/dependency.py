@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 
 from config import settings
 from services.auth import get_user_by_userid, verify_token, get_user_by_username
-from api.auth.schema import UserInDB, TokenPayload
+from api.auth.schema import CurrentUser, UserInDB, TokenPayload
 
 # OAuth2 scheme for token authentication
 oauth2_scheme = OAuth2PasswordBearer(
@@ -25,10 +25,10 @@ oauth2_scheme = OAuth2PasswordBearer(
 async def get_current_user(
     security_scopes: SecurityScopes,
     token: Annotated[str, Depends(oauth2_scheme)]
-) -> UserInDB:
+) -> CurrentUser:
     """
     Dependency to get the current authenticated user from a JWT token.
-    
+
     Args:
         security_scopes: Security scopes required for the endpoint
         token: JWT token from the Authorization header
@@ -78,12 +78,13 @@ async def get_current_user(
                 headers={"WWW-Authenticate": authenticate_value},
             )
     
-    return user
+    return CurrentUser(**user.dict(), session_id=payload.session_id)
+    # return  user
 
 
 async def get_current_active_user(
     current_user: Annotated[UserInDB, Depends(get_current_user)]
-) -> UserInDB:
+) -> CurrentUser:
     """
     Dependency to get the current active user.
     
@@ -108,7 +109,7 @@ async def get_current_active_user(
 # Role-based security dependencies
 async def get_admin_user(
     current_user: Annotated[UserInDB, Security(get_current_active_user, scopes=["admin"])]
-) -> UserInDB:
+) -> CurrentUser:
     """
     Dependency to get the current admin user.
     
@@ -118,22 +119,10 @@ async def get_admin_user(
     Returns:
         UserInDB: The authenticated admin user
     """
+    print("get_current_user", current_user)
     return current_user
 
 
-async def get_regular_user(
-    current_user: Annotated[UserInDB, Security(get_current_active_user, scopes=["user"])]
-) -> UserInDB:
-    """
-    Dependency to get the current regular user.
-    
-    Args:
-        current_user: The authenticated user with user scope
-        
-    Returns:
-        UserInDB: The authenticated regular user
-    """
-    return current_user
 
 
 

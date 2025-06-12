@@ -17,6 +17,7 @@ class TokenPayload(BaseModel):
     iat: int = Field(..., description="Issued at timestamp")
     jti: str = Field(..., description="JWT ID")
     type: str = Field(..., description="Token type (access or refresh)")
+    session_id: Optional[str] = None  # Optional session ID for tracking user sessions
 
 
 class TokenResponse(BaseModel):
@@ -106,7 +107,6 @@ class UserInDB(UserBase):
     permissions: List[str] = Field(default_factory=list, description="List of user permissions")
 
 
-
 class TokenBlacklist(BaseModel):
     """Token blacklist model."""
     jti: str = Field(..., description="JWT ID")
@@ -114,3 +114,6 @@ class TokenBlacklist(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
 
 
+
+class CurrentUser(UserInDB):
+    session_id: Optional[str]   # extracted from JWT token

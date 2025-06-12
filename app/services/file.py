@@ -16,7 +16,7 @@ from integrations.azure_blob import (
     generate_sas_url, get_blob_properties
 )
 from api.files.schema import FileVisibility, FileMetadata
-
+from config import settings
 logger = logging.getLogger(__name__)
 
 
@@ -267,7 +267,7 @@ async def get_user_files(
     
     # Execute query
     return await query_items_with_pagination(
-        "files",
+       settings.FILES_CONTAINER_NAME,
         query,
         parameters,
         page,
@@ -315,7 +315,7 @@ async def get_shared_files(
     
     # Execute query
     return await query_items_with_pagination(
-        "files",
+        settings.FILES_CONTAINER_NAME,
         query,
         parameters,
         page,

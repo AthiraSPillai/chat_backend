@@ -30,7 +30,7 @@ from utils.response import SuccessResponse
 router = APIRouter()
 
 
-@router.post("/sessions", response_model=ChatSessionResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/create", response_model=ChatSessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_chat_session(
     session_create: ChatSessionCreate,
     current_user: Annotated[dict, Depends(get_current_active_user)]
@@ -48,13 +48,17 @@ async def create_new_chat_session(
     # Create chat session in database
     session = await create_chat_session(
         user_id=current_user.id,
+        ui_session_id=current_user.session_id,  # Use session ID from current user
         title=session_create.title,
         description=session_create.description,
         tags=session_create.tags,
-        system_prompt=session_create.system_prompt
+        system_prompt=session_create.system_prompt,
+
     )
-    
+    print(session)
+
     return ChatSessionResponse(**session)
+
 
 
 @router.get("/sessions", response_model=ChatSessionListResponse)

@@ -16,7 +16,7 @@ from services.file import get_file_by_id, check_file_access
 from integrations.azure_openai import generate_summary, generate_embeddings
 from integrations.azure_translator import translate_text
 from api.tasks.schema import TaskType, TaskStatus
-
+from config import settings
 logger = logging.getLogger(__name__)
 
 
@@ -260,7 +260,7 @@ async def get_user_tasks(
     
     # Execute query
     return await query_items_with_pagination(
-        "tasks",
+        settings.TASKS_CONTAINER_NAME,
         query,
         parameters,
         page,
@@ -294,7 +294,7 @@ async def get_task_result(task_id: str, user_id: str) -> Dict[str, Any]:
     
     # Query task result
     results = await query_items(
-        "task_results",
+        settings.TASK_RESULTS_CONTAINER_NAME,
         "SELECT * FROM c WHERE c.task_id = @task_id",
         [{"name": "@task_id", "value": task_id}]
     )

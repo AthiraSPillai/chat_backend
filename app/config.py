@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Application settings
-    APP_TITLE: str = "FastAPI Azure Backend"
+    APP_TITLE: str = "Avenir FastAPI Backend"
     APP_DESCRIPTION: str = "Production-ready FastAPI backend for Azure Web App"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = Field(default=False)
@@ -31,17 +31,27 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = Field(default="HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7)
-    REFRESH_TOKEN_CONTAINER_NAME: str = Field(default="refresh_token")
+    REFRESH_TOKEN_CONTAINER_NAME: str = Field(...)
     # Azure Cosmos DB settings
     COSMOS_ENDPOINT: str = Field(...)
     COSMOS_KEY: str = Field(...)
-    COSMOS_DATABASE: str = Field(default="fastapi_backend")
+    COSMOS_DATABASE: str =Field(...)
+    USERS_CONTAINER_NAME: str = Field(...)
+    CHAT_CONTAINER_NAME: str = Field(...)
+    FILES_CONTAINER_NAME: str = Field(...)
+    TASKS_CONTAINER_NAME: str = Field(...)
+    TASK_RESULTS_CONTAINER_NAME: str = Field(...)
+    EMBEDDINGS_CONTAINER_NAME: str = Field(...)
+    ROLES_CONTAINER_NAME: str = Field(...)
+    CHAT_MESSAGES_CONTAINER_NAME: str = Field(...)
+    PROMPT_CONTAINER_NAME: str = Field(...)
+    
     
     # Azure Blob Storage settings
     BLOB_CONNECTION_STRING: str = Field(...)
-    BLOB_CONTAINER_USER_FILES: str = Field(default="user-files")
-    BLOB_CONTAINER_SHARED_FILES: str = Field(default="shared-files")
-    BLOB_CONTAINER_EMBEDDINGS: str = Field(default="embeddings")
+    BLOB_CONTAINER_USER_FILES: str = Field(...)
+    BLOB_CONTAINER_SHARED_FILES: str = Field(...)
+    BLOB_CONTAINER_EMBEDDINGS: str = Field(...)
     AZURE_STORAGE_CONNECTION_STRING: str = Field(...)
 
     
@@ -67,7 +77,7 @@ class Settings(BaseSettings):
     GRAPHRAG_ENDPOINT: Optional[str] = Field(default=None)
     GRAPHRAG_API_KEY: Optional[str] = Field(default=None)
     
-
+    SESSION_CONTAINER_NAME: Optional[str]= Field(default="session")
     
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 

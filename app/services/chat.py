@@ -8,7 +8,7 @@ import uuid
 import logging
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Tuple
-
+from config import settings
 from integrations.azure_cosmos_db import create_item, read_item, replace_item, delete_item, query_items, query_items_with_pagination
 from integrations.azure_openai import generate_chat_completion as openai_generate_chat_completion
 from api.chat.schema import ChatSessionStatus, MessageRole
@@ -22,7 +22,8 @@ async def create_chat_session(
     title: str,
     description: Optional[str] = None,
     tags: Optional[List[str]] = None,
-    system_prompt: Optional[str] = None
+    system_prompt: Optional[str] = None,
+    ui_session_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Create a new chat session.
@@ -52,6 +53,7 @@ async def create_chat_session(
         "message_count": 0,
         "created_at": now.isoformat(),
         "updated_at": now.isoformat(),
+        "ui_session_id": ui_session_id,  # Optional UI session ID
         "last_message_at": None
     }
     
@@ -62,10 +64,12 @@ async def create_chat_session(
     if system_prompt:
         await create_message(
             session_id=session_id,
+            ui_session_id=ui_session_id,  # Pass UI session ID if available
             user_id=user_id,
             role=MessageRole.SYSTEM,
             content=system_prompt
         )
+    print(result)
     
     return result
 
@@ -122,7 +126,7 @@ async def update_chat_session(
         
         # Find existing system message
         system_messages = await query_items(
-            "messages",
+            settings.CHAT_MESSAGES_CONTAINER_NAME,
             "SELECT * FROM c WHERE c.session_id = @session_id AND c.role = \'system\'",
             [
                 {"name": "@session_id", "value": session_id}
@@ -134,7 +138,7 @@ async def update_chat_session(
             system_message = system_messages[0]
             system_message["content"] = system_prompt
             system_message["updated_at"] = datetime.utcnow().isoformat()
-            await replace_item("messages", system_message["id"], system_message)
+            await replace_item(settings.CHAT_MESSAGES_CONTAINER_NAME, system_message["id"], system_message)
         else:
             # Create new system message
             await create_message(
@@ -148,7 +152,7 @@ async def update_chat_session(
     session["updated_at"] = datetime.utcnow().isoformat()
     
     # Save to database
-    result = await replace_item("chat_sessions", session_id, session)
+    result = await replace_item(settings.CHAT_CONTAINER_NAME, session_id, session)
     
     return result
 
@@ -173,7 +177,7 @@ async def delete_chat_session(session_id: str, user_id: str) -> None:
     # Delete messages
     # In a real implementation, this would use a bulk delete operation
     messages = await query_items(
-        "messages",
+       settings.CHAT_CONTAINER_NAME,
         "SELECT c.id FROM c WHERE c.session_id = @session_id",
         [{"name": "@session_id", "value": session_id}]
     )
@@ -250,12 +254,10 @@ async def get_user_chat_sessions(
             parameters.append({"name": tag_param, "value": tag})
         
         query += f" AND ({ ' OR '.join(tag_conditions) })"
-    
     query += " ORDER BY c.last_message_at DESC, c.created_at DESC"
-    
     # Execute query
     return await query_items_with_pagination(
-        "chat_sessions",
+        settings.CHAT_CONTAINER_NAME,
         query,
         parameters,
         page,
@@ -264,10 +266,13 @@ async def get_user_chat_sessions(
 
 
 async def create_message(
+
     session_id: str,
     user_id: str,
     role: MessageRole,
-    content: Any
+    content: Any,
+    ui_session_id: Optional[str] = None,
+
 ) -> Dict[str, Any]:
     """
     Create a new message in a chat session.
@@ -297,6 +302,7 @@ async def create_message(
     message = {
         "id": message_id,
         "session_id": session_id,
+        "ui_session_id": ui_session_id,  # Optional UI session ID
         "user_id": user_id,
         "role": role,
         "content": content,
@@ -305,7 +311,7 @@ async def create_message(
     }
     
     # Save to database
-    result = await create_item("messages", message)
+    result = await create_item(settings.CHAT_MESSAGES_CONTAINER_NAME, message)
     
     # Update session
     session["message_count"] += 1
@@ -367,7 +373,7 @@ async def get_chat_history(
     
     # Execute query
     messages = await query_items(
-        "messages",
+        settings.CHAT_MESSAGES_CONTAINER_NAME,
         query,
         parameters
     )
